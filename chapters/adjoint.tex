@@ -1,0 +1,245 @@
+\section{Adjoint Method}
+
+%\begin{frame}{Motivation \& Objectives}
+
+%\textbf{Motivation}
+%\begin{itemize}
+%  \item \emph{Complex physics/engineering models}: need \alert{accurate} ROMs + \alert{significant} dimensionality reduction
+%  \item Limitations of \emph{traditional OpInf}: noisy/incomplete data, strong nonlinearities
+%  \item Reformulate learning via \emph{integral-based loss} + \emph{adjoint optimization}
+%\end{itemize}
+
+%\vspace{1em}
+%\textbf{Objectives}
+%\begin{itemize}
+%  \item Reformulate OpInf in \emph{integral form} to avoid explicit differentiation
+%  \item Derive \emph{adjoint-state equations} for efficient gradient-based ROM training
+%  \item Validate on canonical problems: \emph{viscous Burgers'} + \emph{Fisher–KPP} under noisy data
+%  \item Demonstrate \emph{noise attenuation}, inherent regularization, and \emph{computational efficiency}
+%\end{itemize}
+
+%\end{frame}
+
+\begin{frame}{Motivation \& Objectives}
+
+\textbf{Motivation}
+\begin{itemize}
+    \item Traditional OpInf: Limited by noise, incomplete data, nonlinear dynamics
+    \item Real-world measurements $\Rightarrow$ Need robust ROMs with built-in noise attenuation
+    \item Key challenge: Avoid unstable derivative approximations
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{Objectives}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\begin{itemize}
+    \item \textbf{Reformulate OpInf} via:
+    \begin{itemize}
+        \item[--] Integral-based loss functional
+        \item[--] Adjoint-based optimization
+    \end{itemize}
+    \item Investigate \textbf{time integration} as low-pass filter
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{itemize}
+    \item Achieve:
+    \begin{itemize}
+        \item[--] Noise-robust training
+        \item[--] Cost efficiency
+        \item[--] Nonlinear compatibility
+    \end{itemize}
+    \item Validate on \textbf{Burgers' eq.} (shocks) and \textbf{Fisher-KPP} (reaction-diffusion)
+\end{itemize}
+\end{column}
+\end{columns}
+
+\end{frame}
+
+\begin{frame}{Problem Set-Up}
+
+We define the \textcolor{codeblue}{training loss} 
+%\begin{equation*}
+%        \ell(\hat{\mathbf{q}}(\cdot)) \coloneqq \int_0^T g\bigl(\hat{\mathbf{q}}(t),t\bigr)~dt = \int_0^T \Bigl\|\hat{\mathbf{q}}(t) - \hat{\mathbf{q}}_{\mathrm{true}}(t)\Bigr\|_2^2~dt,
+%\end{equation*}
+\vspace{-0.6cm}
+\begin{equation*}
+        \ell: \mathcal{C}^1(\mathcal{T})^r  \to \mathbb{R}\,,\quad \hat{\mathbf{q}}(\cdot) \mapsto  \int_0^T \overbrace{\Big\|\hat{\mathbf{q}}(t) - \hat{\mathbf{q}}_\mathrm{true}(t)\Big\|_2^2}^{g(\hat{\mathbf{q}}(t),t)}~dt,
+        \label{eq:continuous_loss}
+\end{equation*}
+and the \textcolor{codeblue}{reduced training loss}
+\begin{equation*}
+        \tilde{\ell}: \mathbb{R}^d  \to \mathbb{R}\,,\quad \hat{\bm{\theta}} \mapsto \int_0^T \norm{\tilde{\mathbf{q}}(t,\hat{\bm{\theta}}) - \hat{\mathbf{q}}_\mathrm{true}(t)}_2^2~dt,
+        \label{eq:continuous_reduced_loss}
+    \end{equation*}
+    where $\tilde{\mathbf{q}}(t, \hat{\bm{\theta}}) \coloneqq \tilde{\mathbf{q}}(0) + \displaystyle\int_{0}^t \hat{\mathbf{f}}(\tilde{\mathbf{q}}(\tau),\hat{\bm{\theta}})\;d\tau, \quad t\in[0,T]$. Thus,
+
+\begin{columns}[T]
+\begin{column}{0.1\textwidth}
+\begin{align*}
+    ~&~\\
+    \bm{(*)}\quad\underset{\hat{\bm{\theta}}}{\mathrm{min}}~~\tilde\ell (\hat{\bm{\theta}})
+\end{align*}
+\end{column}
+
+\begin{column}{0.03\textwidth}
+\begin{align*}
+    ~&~\\
+    \bm{\equiv}
+\end{align*}
+\end{column}
+
+\begin{column}{0.4\textwidth}
+\begin{align*}
+    \underset{\hat{\bm{\theta}},\hat{\mathbf{q}}(\cdot)}{\mathrm{min}} ~~&\ell (\hat{\mathbf{q}}(\cdot))\\
+    \mathrm{s.t.}~~&\dot{\hat{\mathbf{q}}}(t) = \hat{\mathbf{f}}(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}), \quad\hat{\mathbf{q}}(0)=\hat{\mathbf{q}}_0
+    \label{eq:opt_problem}
+\end{align*}
+\end{column}
+\end{columns}
+
+\end{frame}
+
+
+\begin{frame}{Adjoint \& Loss-Gradient Equations}
+    
+\textbf{Theorem.} Assume $\hat{\mathbf{f}},\,g \in \mathcal{C}^1\bigl((\hat{\mathbf{q}},\hat{\bm{\theta}})\bigr), ~~
+\hat{\mathbf{q}}(0)=\hat{\mathbf{q}}_0,$ (indep. of $\hat{\bm{\theta}}$). The \textcolor{codeblue}{adjoint variable} $\bm{\lambda}(t)\in\mathcal{C}^1([0,T])^r$ associated to $\bm{(*)}$ satisfies a back propagation ODE
+\begin{center}
+\begin{tcolorbox}[width=11cm, colback=gray!10, colframe=gray!50, boxrule=0.5pt, arc=2pt]
+\begin{equation*}
+        \dot{\bm{\lambda}}(t) = -\;\left(\dfrac{\partial \hat{\mathbf{f}}}{\partial \hat{\mathbf{q}}}\right)^{\top}\bm{\lambda}(t)\;-\; \left(\dfrac{\partial g}{\partial \hat{\mathbf{q}}}\right)^{\top} ,\quad\bm{\lambda}(T)=\bm{0},
+        \label{eq:adjoint_eqs}
+\end{equation*}
+\end{tcolorbox}\end{center}
+and the \textcolor{codeblue}{gradients} w.r.t. $\hat{\bm{\theta}}$ of the reduced training ($\tilde\ell$) and the Lagrange cost ($\mathscr{L}$),
+\begin{equation*}
+        \mathscr{L}\bigl(\hat{\mathbf{q}}(\cdot),\hat{\bm{\theta}},\bm{\lambda}(\cdot)\bigr) \coloneqq \ell(\hat{\mathbf{q}}(\cdot)) - \int_0^T \bm{\lambda}(t)^{\top}\left( \dot{\hat{\mathbf{q}}}(t)-\hat{\mathbf{f}}(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}) \right)dt - \bm{\lambda}(0)^{\top}(\hat{\mathbf{q}}(0)-\hat{\mathbf{q}}_0),
+        \label{eq:lagrange_cost2}
+\end{equation*}
+have the form
+\vspace{-0.6cm}
+\begin{center}
+\begin{tcolorbox}[width=7.7cm, colback=gray!10, colframe=gray!50, boxrule=0.5pt, arc=2pt]
+\begin{equation*}
+        \dfrac{\mathrm{d} \tilde{\ell}}{\mathrm{d} \hat{\bm{\theta}}} = \dfrac{\partial \mathscr{L}}{\partial\hat{\bm{\theta}}} = \int_0^T \bm{\lambda}(t)^{\top}\dfrac{\partial\hat{\mathbf{f}}}{\partial\hat{\bm{\theta}}}~dt.
+        \label{eq:gradient_lagrange}
+\end{equation*}
+\end{tcolorbox}\end{center}
+    
+\end{frame}
+
+\begin{frame}{Proof (Lagrangian Formulation)}
+
+{\scriptsize
+Differentiating w.r.t. $\hat{\bm{\theta}}$,
+\begin{align*}
+    \pdv{\mathscr{L}}{\hat{\bm{\theta}}} &= \int_0^T\left[ \pdv{g}{\hat{\bm{\theta}}} + \pdv{g}{\hat{\mathbf{q}}} \dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} - \bm{\lambda}(t)^{\top} \left( \dv{t}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} - \pdv{\hat{\mathbf{f}}}{\hat{\bm{\theta}}} - \pdv{\hat{\mathbf{f}}}{\hat{\mathbf{q}}}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} \right) \right] dt - \bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0)\notag\\
+    &= \int_0^T \left[\pdv{g}{\hat{\bm{\theta}}} + \bm{\lambda}(t)^{\top} \pdv{\hat{\mathbf{f}}}{\hat{\bm{\theta}}}+ \left( \pdv{g}{\hat{\mathbf{q}}} + \bm{\lambda}(t)^{\top}\pdv{\hat{\mathbf{f}}}{\hat{\mathbf{q}}}-\bm{\lambda}(t)^{\top}\dv{t} \right)\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} \right]dt- \bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0). 
+\end{align*}
+Integrating by parts,
+\begin{align*}
+    \int_0^T -\bm{\lambda}(t)^{\top}\dv{t}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~dt &= \bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0) - \bm{\lambda}(T)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(T) + \int_0^T \left( \dv{\bm{\lambda}}{t}\right)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~dt.
+\end{align*}
+Plugging into above expression,
+\begin{align*}
+   \pdv{\mathscr{L}}{\hat{\bm{\theta}}} &= \int_0^T\left[ \pdv{g}{\hat{\bm{\theta}}} + \bm{\lambda}(t)^{\top} \pdv{\hat{\mathbf{f}}}{\hat{\bm{\theta}}} + \underbrace{\left( \pdv{g}{\hat{\mathbf{q}}} + \bm{\lambda}(t)^{\top}\pdv{\hat{\mathbf{f}}}{\hat{\mathbf{q}}}+ \dot{\bm{\lambda}}(t)^{\top}\right)}_{\text{make = 0}} \dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} \right]dt \\
+   & - \bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0)+\bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0) - \underbrace{\bm{\lambda}(T)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(T)}_{\text{make = 0}}.\quad\qed
+\end{align*}
+
+}
+
+\end{frame}
+
+
+\begin{frame}{Equations of the Three Gradients}
+
+For the \textcolor{codeblue}{ROM-OpInf RHS} $\hat{\mathbf{f}}:\mathbb{R}^r \times \mathbb{R}^d \to \mathbb{R}^r$ and the \textcolor{codeblue}{loss integrand} $g:\mathbb{R}^r\times [0,T]\to \mathbb{R}$,
+\begin{align*}
+    \hat{\mathbf{f}}(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}) &= \hat{\mathbf{c}} + \hat{\mathbf{A}}\hat{\mathbf{q}}(t) + \hat{\mathbf{H}}\left( \hat{\mathbf{q}}(t)\otimes\hat{\mathbf{q}}(t) \right) + \hat{\mathbf{B}}\mathbf{u}(t) \\
+    g(\hat{\mathbf{q}}(t),t) &= \Bigl\|\hat{\mathbf{q}}(t) - \hat{\mathbf{q}}_{\mathrm{true}}(t)\Bigr\|_2^2,
+\end{align*}
+
+
+\begin{tcolorbox}[height=3.6cm, colback=gray!10, colframe=gray!50, boxrule=0.5pt, arc=2pt]
+\begin{align*}
+    \nabla_{\hat{\mathbf{q}}}~\hat{\mathbf{f}}(\hat{\mathbf{q}}, \hat{\bm{\theta}}) &= \hat{\mathbf{A}}^{\top} + 2\left( \hat{\mathbf{H}}\bigl( \hat{\mathbf{q}}(t) \otimes \mathbf{I}_r \bigr) \right)^{\top} = \hat{\mathbf{A}}^{\top} + 2\mathbf{M}(\hat{\mathbf{q}}(t)) ~ \in \mathbb{R}^{r \times r} \\
+    \nabla_{\hat{\mathbf{q}}}\,g\bigl(\hat{\mathbf{q}},t\bigr) &= 2\left(\hat{\mathbf{q}}(t) - \hat{\mathbf{q}}_{\mathrm{true}}(t)\right)~\in\;\mathbb{R}^{r} \\
+\nabla_{\hat{\bm{\theta}}}\,\hat{\mathbf{f}}(\hat{\mathbf{q}}, \hat{\bm{\theta}}) &= \bigl[\,\mathbf{I}_r,\;\hat{\mathbf{q}}(t)^{\top}\otimes\mathbf{I}_r,\;(\hat{\mathbf{q}}(t)\otimes\hat{\mathbf{q}}(t))^{\top}\otimes\mathbf{I}_r,\;\mathbf{u}(t)^{\top}\otimes\mathbf{I}_r\bigr]^{\top}~\in\;\mathbb{R}^{d\times r}.
+\end{align*}
+\end{tcolorbox}
+
+\end{frame}
+
+
+\begin{frame}{Gradient Descent Optimization}
+    
+\begin{center}
+\begin{minipage}{0.95\textwidth}
+\LinesNotNumbered
+\begin{algorithm}[H]
+\label{algorithm_1}
+\SetAlgoLined
+\caption{Armijo Backtracking Line Search + Gradient Descent}
+\textbf{Step 1. Initialization:} Choose $\alpha\in(0,1)$, $\beta\in(0,1)$, and initial step size $\eta_{0} > 0$. Set iteration counter $j=0$\;
+\textbf{Step 2. Compute descent direction:} Evaluate gradient $\mathscr{G}^j = \nabla \tilde\ell(\hat{\bm\theta}^j)$\;
+\textbf{Step 3. Backtracking loop:}
+
+$$\eta \;\leftarrow\;\eta_{0}
+    \quad\text{while}\quad
+    \tilde\ell\bigl(\hat{\bm\theta}^j - \eta\,\mathscr{G}^j\bigr)
+    >
+    \tilde\ell(\hat{\bm\theta}^j)
+    \;-\;\alpha\,\eta\,\|\mathscr{G}^j\|_2^2
+    \quad\text{do}\quad
+    \eta \leftarrow \beta\,\eta$$
+\textbf{Step 4. Update:} Set step size $\eta_j = \eta$ and update
+
+$$\hat{\bm\theta}^{j+1} = \hat{\bm\theta}^j - \eta_j\,\mathscr{G}^j\,.$$
+\textbf{Step 5. Stopping criterion:} If $\|\mathscr{G}^{j+1}\|_2\le\epsilon$ (or another criterion) then stop; otherwise set $j\leftarrow j+1$ and go to Step 2.
+\end{algorithm}
+\end{minipage}
+\end{center}
+
+\end{frame}
+
+
+\begin{frame}{Adjoint Method Algorithm}
+    
+\begin{center}
+\begin{minipage}{0.97\textwidth}
+\scriptsize
+\LinesNotNumbered
+\begin{algorithm}[H]
+\caption{Adjoint Method for Parameter Training}\label{algorithm_2}
+\SetAlgoNoLine
+\textbf{Step 1. Data collection and preprocessing:} Gather snapshots $\mathbf{Q}=[\mathbf{q}_{t_1},\dots,\mathbf{q}_{t_k}]$, $\mathbf{U}=[\mathbf{u}_{t_1},\dots,\mathbf{u}_{t_k}]$.
+\quad [Optional] lift/scale/center the data\;
+\textbf{Step 2. Dimensionality reduction:} Compute POD basis $\mathbf{V}_r$ (cumulative energy criterion or fixed ROM dimension $r$). Project: $\hat{\mathbf{Q}} \approx \mathbf{V}_r^\top\mathbf{Q}$\;
+\textbf{Step 3. Initial parameter guess:} Solve OpInf regression with $\dot{\mathbf{Q}}$ to obtain $\hat{\bm\theta}^{0}_{\text{OpInf}}$\;
+\textbf{Step 4. Gradient descent loop:}
+Initialize $j=0$, $\hat{\bm\theta}^j=\hat{\bm\theta}^{0}_{\text{OpInf}}$, and step-size bounds.
+\begin{enumerate}
+  \item \textbf{Forward solve:}
+    compute ROM solution $\tilde{\mathbf{q}}(t,\hat{\bm\theta}^j) = \hat{\mathbf{q}}(t)$ via reduced ODE.
+  \item \textbf{Gradients:}
+    compute $\nabla_{\hat{\mathbf{q}}}~\hat{\mathbf{f}}(\hat{\mathbf{q}}, \hat{\bm{\theta}}^j),~\nabla_{\hat{\mathbf{q}}}\,g\bigl(\hat{\mathbf{q}},t\bigr)$ and $\nabla_{\hat{\bm{\theta}}}\,\hat{\mathbf{f}}(\hat{\mathbf{q}}, \hat{\bm{\theta}}^j)$.
+  \item \textbf{Adjoint solve:}
+    integrate adjoint ODE backward for $\bm\lambda(t)$.
+  \item \textbf{Loss-Gradient assembly:}
+    form $\nabla\tilde\ell(\hat{\bm\theta}^j)$.
+  \item \textbf{Armijo line search:}
+    choose step size $\eta_j$ by backtracking (Algorithm~\ref{algorithm_1}).
+  \item \textbf{Update:}
+    $\hat{\bm\theta}^{j+1}=\hat{\bm\theta}^j-\eta_j\nabla\tilde\ell(\hat{\bm\theta}^j)$.
+  \item \textbf{Stopping criteria:}
+    check convergence, if $\|\nabla\tilde\ell(\hat{\bm\theta}^{j+1})\|_2\le\epsilon$ or $j=j_{max}$, stop; else $j\leftarrow j+1$ and repeat.
+\end{enumerate}
+\textbf{Step 5. Return} {$\hat{\bm\theta}^*$}.
+\end{algorithm}
+\end{minipage}
+\end{center}
+
+\end{frame}

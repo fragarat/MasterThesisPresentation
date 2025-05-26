@@ -1,0 +1,68 @@
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{hyperref, % clickable links
+    graphicx, % include images
+    listings, % for code and formatting
+    caption, % customization of captions in figures and tables
+    stackengine, % custom layouts 
+    xcolor, % extend color support
+    multicol, % multiple columns layout
+    booktabs, % high quality tables
+    lipsum % remove it
+}
+
+\usepackage{UU_beamer} % customized style
+\usepackage{pdfpages}
+\usepackage{tcolorbox}
+\usepackage{adjustbox}
+\usepackage[linesnumbered,ruled,lined]{algorithm2e}
+\usepackage{animate}
+\usepackage{bm}
+\usepackage{extpfeil}
+\usepackage{physics}
+\usepackage{amsmath, amsthm, amssymb, amsfonts} 
+\usepackage{mathrsfs}
+
+\usepackage{caption}
+\captionsetup{font=tiny} % or scriptsize, small, etc.
+\usepackage{subcaption}
+
+\def\cmd#1{\texttt{\color{red}\footnotesize $\backslash$#1}}
+\def\env#1{\texttt{\color{blue}\footnotesize #1}}
+
+% ------ CODE COLOR DEFINITION ------ %
+
+\definecolor{codered}{rgb}{0.6,0,0}
+\definecolor{codeblue}{rgb}{0,0,0.8}
+\definecolor{codegreen}{rgb}{0,0.5,0}
+\definecolor{almostwhite}{gray}{0.55}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{lublue}{RGB}{0,0,128}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries\color{codeblue},
+    emphstyle=\ttfamily\color{codered},   % Custom highlighting style
+    stringstyle=\color{codepurple},
+    numbers=left,
+    numberstyle=\small\color{almostwhite},
+    rulesepcolor=\color{red!20!green!20!blue!20},
+    frame=shadowbox,
+    commentstyle=\color{codegreen},
+    captionpos=b    
+}
+
+% ------------- PRESENTATION INFO --------------- %
+\newcommand{\fullconference}{}
+\newcommand{\shortconference}{}
+\newcommand{\contact}{\textit{}}
+
+
+\author[F. García, \contact]{\href{}{Francisco García Atienza}}
+\institute[Faculty of Science]{\href{}{Numerical Analysis}
+    \\ \smallskip \contact}
+\title[Training Robust Reduced-Order Models Using the Adjoint Method]{~\\Short}
+\subtitle[\shortconference]{-}
+\date[Month 20XX]{\tiny \today
+    \\ \fullconference}
