@@ -26,7 +26,7 @@
 \begin{itemize}
     \item Traditional OpInf: Limited by noise, incomplete data, nonlinear dynamics
     \item Real-world measurements $\Rightarrow$ Need robust ROMs with built-in noise attenuation
-    \item Key challenge: Avoid unstable derivative approximations
+    \item Key challenge: Avoid potentially unstable derivative approximations
 \end{itemize}
 
 \vspace{0.3cm}
@@ -66,7 +66,7 @@ We define the \textcolor{codeblue}{training loss}
 %\end{equation*}
 \vspace{-0.6cm}
 \begin{equation*}
-        \ell: \mathcal{C}^1(\mathcal{T})^r  \to \mathbb{R}\,,\quad \hat{\mathbf{q}}(\cdot) \mapsto  \int_0^T \overbrace{\Big\|\hat{\mathbf{q}}(t) - \hat{\mathbf{q}}_\mathrm{true}(t)\Big\|_2^2}^{g(\hat{\mathbf{q}}(t),t)}~dt,
+        \ell: \mathcal{C}^1([0,T])^r  \to \mathbb{R}\,,\quad \hat{\mathbf{q}}(\cdot) \mapsto  \int_0^T \overbrace{\Big\|\hat{\mathbf{q}}(t) - \hat{\mathbf{q}}_\mathrm{true}(t)\Big\|_2^2}^{g(\hat{\mathbf{q}}(t),t)}~dt,
         \label{eq:continuous_loss}
 \end{equation*}
 and the \textcolor{codeblue}{reduced training loss}
@@ -124,7 +124,7 @@ have the form
 \begin{center}
 \begin{tcolorbox}[width=7.7cm, colback=gray!10, colframe=gray!50, boxrule=0.5pt, arc=2pt]
 \begin{equation*}
-        \dfrac{\mathrm{d} \tilde{\ell}}{\mathrm{d} \hat{\bm{\theta}}} = \dfrac{\partial \mathscr{L}}{\partial\hat{\bm{\theta}}} = \int_0^T \bm{\lambda}(t)^{\top}\dfrac{\partial\hat{\mathbf{f}}}{\partial\hat{\bm{\theta}}}~dt.
+        \dfrac{\mathrm{d} \tilde{\ell}}{\mathrm{d} \hat{\bm{\theta}}} = \dfrac{\partial \mathscr{L}}{\partial\hat{\bm{\theta}}} = \int_0^T \bm{\lambda}(t)^{\top} \dfrac{\partial\hat{\textbf{f}}}{\partial\hat{\bm{\theta}}}~dt.
         \label{eq:gradient_lagrange}
 \end{equation*}
 \end{tcolorbox}\end{center}
@@ -145,7 +145,7 @@ Integrating by parts,
 \end{align*}
 Plugging into the above expression,
 \begin{align*}
-   \pdv{\mathscr{L}}{\hat{\bm{\theta}}} &= \int_0^T\left[ \pdv{g}{\hat{\bm{\theta}}} + \bm{\lambda}(t)^{\top} \pdv{\hat{\mathbf{f}}}{\hat{\bm{\theta}}} + \underbrace{\left( \pdv{g}{\hat{\mathbf{q}}} + \bm{\lambda}(t)^{\top}\pdv{\hat{\mathbf{f}}}{\hat{\mathbf{q}}}+ \dot{\bm{\lambda}}(t)^{\top}\right)}_{\text{make = 0}} \dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} \right]dt \\
+   \pdv{\mathscr{L}}{\hat{\bm{\theta}}} &= \int_0^T\left[ \pdv{g}{\hat{\bm{\theta}}} + \bm{\lambda}(t)^{\top} \pdv{\hat{\textbf{f}}}{\hat{\bm{\theta}}} + \underbrace{\left( \pdv{g}{\hat{\mathbf{q}}} + \bm{\lambda}(t)^{\top}\pdv{\hat{\mathbf{f}}}{\hat{\mathbf{q}}}+ \dot{\bm{\lambda}}(t)^{\top}\right)}_{\text{make = 0}} \dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} \right]dt \\
    & - \bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0)+\bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0) - \underbrace{\bm{\lambda}(T)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(T)}_{\text{make = 0}}.\quad\qed
 \end{align*}
 
@@ -218,9 +218,9 @@ $$\hat{\bm\theta}^{j+1} = \hat{\bm\theta}^j - \eta_j\,\mathscr{G}^j\,.$$
 \textbf{Step 1. Data collection and preprocessing:} Gather snapshots $\mathbf{Q}=[\mathbf{q}_{t_1},\dots,\mathbf{q}_{t_k}]$, $\mathbf{U}=[\mathbf{u}_{t_1},\dots,\mathbf{u}_{t_k}]$.
 \quad [Optional] lift/scale/center the data\;
 \textbf{Step 2. Dimensionality reduction:} Compute POD basis $\mathbf{V}_r$ (cumulative energy criterion or fixed ROM dimension $r$). Project: $\hat{\mathbf{Q}} \approx \mathbf{V}_r^\top\mathbf{Q}$\;
-\textbf{Step 3. Initial parameter guess:} Solve OpInf regression with $\dot{\mathbf{Q}}$ to obtain $\hat{\bm\theta}^{0}_{\text{OpInf}}$\;
+\textbf{Step 3. Initial parameter guess:} Solve OpInf regression with $\dot{\mathbf{Q}}$ to obtain $\hat{\bm\theta}^{*}_{\text{OpInf}}$\;
 \textbf{Step 4. Gradient descent loop:}
-Initialize $j=0$, $\hat{\bm\theta}^j=\hat{\bm\theta}^{0}_{\text{OpInf}}$, and step-size bounds.
+Initialize $j=0$, $\hat{\bm\theta}^0=\hat{\bm\theta}^{*}_{\text{OpInf}}$, and step-size bounds.
 \begin{enumerate}
   \item \textbf{Forward solve:}
     compute ROM solution $\tilde{\mathbf{q}}(t,\hat{\bm\theta}^j) = \hat{\mathbf{q}}(t)$ via reduced ODE.
@@ -230,12 +230,7 @@ Initialize $j=0$, $\hat{\bm\theta}^j=\hat{\bm\theta}^{0}_{\text{OpInf}}$, and st
     integrate adjoint ODE backward for $\bm\lambda(t)$.
   \item \textbf{Loss-Gradient assembly:}
     form $\nabla\tilde\ell(\hat{\bm\theta}^j)$.
-  \item \textbf{Armijo line search:}
-    choose step size $\eta_j$ by backtracking (Algorithm~\ref{algorithm_1}).
-  \item \textbf{Update:}
-    $\hat{\bm\theta}^{j+1}=\hat{\bm\theta}^j-\eta_j\nabla\tilde\ell(\hat{\bm\theta}^j)$.
-  \item \textbf{Stopping criteria:}
-    check convergence, if $\|\nabla\tilde\ell(\hat{\bm\theta}^{j+1})\|_2\le\epsilon$ or $j=j_{max}$, stop; else $j\leftarrow j+1$ and repeat.
+  \item \textbf{Armijo line search + GD:} Algorithm~\ref{algorithm_1}.
 \end{enumerate}
 \textbf{Step 5. Return} {$\hat{\bm\theta}^*$}.
 \end{algorithm}
