@@ -43,6 +43,7 @@
     \item Investigate \textbf{time integration} as low-pass filter
 \end{itemize}
 \end{column}
+\hspace{-1.5cm}
 \begin{column}{0.48\textwidth}
 \begin{itemize}
     \item Achieve:
@@ -51,7 +52,7 @@
         \item[--] Cost efficiency
         \item[--] Nonlinear compatibility
     \end{itemize}
-    \item Validate on \textbf{Burgers' eq.} (shocks) and \textbf{Fisher-KPP} (reaction-diffusion)
+    \item Validate on:\\ \textbf{Burgers' eq.} (convection-diffusion)\\and \textbf{Fisher-KPP} (reaction-diffusion)
 \end{itemize}
 \end{column}
 \end{columns}
@@ -131,7 +132,7 @@ have the form
     
 \end{frame}
 
-\begin{frame}{Proof (Lagrangian Formulation)}
+\begin{frame}{Proof Sketch (Lagrangian Formulation)}
 
 {\scriptsize
 Differentiating w.r.t. $\hat{\bm{\theta}}$,
@@ -172,6 +173,26 @@ For the \textcolor{codeblue}{ROM-OpInf RHS} $\hat{\mathbf{f}}:\mathbb{R}^r \time
 \end{tcolorbox}
 
 \end{frame}
+
+
+\begin{frame}{Primal Problem}
+  The \textcolor{codeblue}{primal} sensitivity equations for the state $\hat{\mathbf{q}}(t)$ and parameters $\hat{\theta}_i$ for $i=1,\dots,d$ are given by:
+    $$\dot{\hat{\mathbf{q}}}(t)
+      = \hat{\mathbf{f}}\bigl(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}\bigr),
+      \qquad
+      \partial_{\hat{\theta}_i}\dot{\hat{\mathbf{q}}}(t)
+      = \frac{\partial \hat{\mathbf{f}}}{\partial \hat{\mathbf{q}}}
+        \bigl(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}\bigr)^{\!\top}
+        \,\partial_{\hat{\theta}_i}\hat{\mathbf{q}}(t)
+      + \partial_{\hat{\theta}_i}\hat{\mathbf{f}}
+        \bigl(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}\bigr).$$
+
+  \begin{block}{Remark}
+    While the adjoint equations are independent of $i=1,\dots, d$, i.e., the size of the $\hat{\bm{\theta}}$ parameters, the primal sensitivity equations require solving $d$ systems for 
+    $\{\partial_{\hat{\theta}_i} \dot{\hat{\mathbf{q}}}(t)\}_{i=1}^d$, making the adjoint method particularly advantageous to the primal when $d \gg 1$.
+  \end{block}
+\end{frame}
+
 
 
 \begin{frame}{Gradient Descent Optimization}
