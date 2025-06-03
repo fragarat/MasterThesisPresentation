@@ -74,7 +74,7 @@
 Data perturbation: $\displaystyle\text{noise}\sim\mathcal{N}(0, \sigma^2),\quad \sigma=\dfrac{\text{pct}}{100}\max_{1 \leq j \leq k} \left\| \mathbf{q}(t_j) \right\|_2
 $
 
-\vspace{0.8cm}
+\vspace{0.6cm}
 
   \begin{columns}[T,onlytextwidth]  % top‐aligned columns, full text width
     \column{0.48\textwidth}
@@ -94,6 +94,17 @@ $
       \label{fig:right}
   \end{columns}
 
+\vspace{-0.3cm}
+
+  \begin{table}[]
+        \begin{tabular}{c|cccc}
+            \textbf{Rel. State $\mathbf{L^2}$ Error} & 1\% & 5\% & 10\% & 20\% \\
+            \hline\hline
+            OpInf     &  0.04039634  & 0.04910057   & 0.05458478  & 0.16265746  \\
+            Adjoint   &  0.03814659  & 0.03817415   & 0.03962203  & 0.08028812 
+        \end{tabular}
+  \end{table}
+    
 \end{frame}
 
 \begin{frame}{Burgers' Results II}
