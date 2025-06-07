@@ -15,17 +15,7 @@
 
 \vspace{0.6cm}
 
-\textbf{Example}: 1D - Viscous Burgers' Eq.
-$$
-\dfrac{\partial}{\partial t}q(x,t) = \nu\dfrac{\partial^2 }{\partial x^2}q(x,t) - \dfrac{\partial }{\partial x}\dfrac{q(x,t)^2}{2}
-\quad
-\xLongrightarrow{\substack{\text{Spatial Discr.} \\[0.7ex] \text{+} \\[0.7ex] \text{MOR} \\[0.7ex]}}
-\quad
-\dot{\hat{\mathbf{q}}}(t) = \hat{\mathbf{A}}\hat{\mathbf{q}}(t) + \hat{\mathbf{H}}\left(\hat{\mathbf{q}}(t)\otimes\hat{\mathbf{q}}(t)\right).
-$$
-
-
-We infer $\hat{\bm{\theta}}=[\hat{\mathbf{A}},\hat{\mathbf{H}}]\in\mathbb{R}^{r\times(r+r^2)}$ by: $~\displaystyle\min_{\hat{\bm{\theta}}} \sum_{i=1}^k\Bigg\| \left[\hat{\mathbf{A}}\hat{\mathbf{q}}(t_i) + \hat{\mathbf{H}}\left(\hat{\mathbf{q}}(t_i)\otimes\hat{\mathbf{q}}(t_i) \right)\right] - \dot{\hat{\mathbf{q}}}(t_i)\Bigg\|_2^2$.
+We infer $\hat{\bm{\theta}}=[\hat{\mathbf{A}},\hat{\mathbf{H}}]\in\mathbb{R}^{r\times(r+r^2)}$ by: $$~\displaystyle\min_{\hat{\bm{\theta}}} \sum_{i=1}^k\Bigg\| \left[\hat{\mathbf{A}}\hat{\mathbf{q}}(t_i) + \hat{\mathbf{H}}\left(\hat{\mathbf{q}}(t_i)\otimes\hat{\mathbf{q}}(t_i) \right)\right] - \dot{\hat{\mathbf{q}}}(t_i)\Bigg\|_2^2$$
 
 \end{frame}
 

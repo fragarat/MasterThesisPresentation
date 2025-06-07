@@ -75,7 +75,7 @@ and the \textcolor{codeblue}{reduced training loss}
         \tilde{\ell}: \mathbb{R}^d  \to \mathbb{R}\,,\quad \hat{\bm{\theta}} \mapsto \int_0^T \norm{\tilde{\mathbf{q}}(t,\hat{\bm{\theta}}) - \hat{\mathbf{q}}_\mathrm{true}(t)}_2^2~dt,
         \label{eq:continuous_reduced_loss}
     \end{equation*}
-    where $\tilde{\mathbf{q}}(t, \hat{\bm{\theta}}) \coloneqq \tilde{\mathbf{q}}(0) + \displaystyle\int_{0}^t \hat{\mathbf{f}}(\tilde{\mathbf{q}}(\tau),\hat{\bm{\theta}})\;d\tau, \quad t\in[0,T]$. Thus,
+    where $\tilde{\mathbf{q}}(t, \hat{\bm{\theta}}) = \tilde{\mathbf{q}}(0) + \displaystyle\int_{0}^t \hat{\mathbf{f}}(\tilde{\mathbf{q}}(\tau),\hat{\bm{\theta}})\;d\tau, \quad t\in[0,T]$. Thus,
 
 \begin{columns}[T]
 \begin{column}{0.1\textwidth}
@@ -106,48 +106,45 @@ and the \textcolor{codeblue}{reduced training loss}
 
 \begin{frame}{Adjoint \& Loss-Gradient Equations}
     
-\textbf{Theorem.} Assume $\hat{\mathbf{f}},\,g \in \mathcal{C}^1\bigl((\hat{\mathbf{q}},\hat{\bm{\theta}})\bigr), ~~
+\textbf{Theorem. (García, 2025)} Assume $\hat{\mathbf{f}},\,g \in \mathcal{C}^1\bigl((\hat{\mathbf{q}},\hat{\bm{\theta}})\bigr), ~~
 \hat{\mathbf{q}}(0)=\hat{\mathbf{q}}_0,$ (indep. of $\hat{\bm{\theta}}$). The \textcolor{codeblue}{adjoint variable} $\bm{\lambda}(t)\in\mathcal{C}^1([0,T])^r$ associated to $\bm{(*)}$ satisfies a back propagation ODE
 \begin{center}
-\begin{tcolorbox}[width=11cm, colback=gray!10, colframe=gray!50, boxrule=0.5pt, arc=2pt]
+\begin{tcolorbox}[width=12.8cm, colback=gray!10, colframe=gray!50, boxrule=0.5pt, arc=2pt]
 \begin{equation*}
-        \dot{\bm{\lambda}}(t) = -\;\left(\dfrac{\partial \hat{\mathbf{f}}}{\partial \hat{\mathbf{q}}}\right)^{\top}\bm{\lambda}(t)\;-\; \left(\dfrac{\partial g}{\partial \hat{\mathbf{q}}}\right)^{\top} ,\quad\bm{\lambda}(T)=\bm{0},
+        \dot{\bm{\lambda}}(t) = -\left[ \left(\dfrac{\partial \hat{\mathbf{f}}}{\partial\hat{\mathbf{q}}}\right)^{\top}\bm{\lambda}(t) + \left( \dfrac{\partial g}{\partial \hat{\mathbf{q}}} \right)^{\top} \right]\Bigg\vert_{\hat{\mathbf{q}}(\cdot) = \tilde{\mathbf{q}}(\cdot, \hat{\bm{\theta}} ) },\quad\bm{\lambda}(T)=\bm{0}
         \label{eq:adjoint_eqs}
-\end{equation*}
+    \end{equation*}
 \end{tcolorbox}\end{center}
-and the \textcolor{codeblue}{gradients} w.r.t. $\hat{\bm{\theta}}$ of the reduced training ($\tilde\ell$) and the Lagrange cost ($\mathscr{L}$),
-\begin{equation*}
-        \mathscr{L}\bigl(\hat{\mathbf{q}}(\cdot),\hat{\bm{\theta}},\bm{\lambda}(\cdot)\bigr) \coloneqq \ell(\hat{\mathbf{q}}(\cdot)) - \int_0^T \bm{\lambda}(t)^{\top}\left( \dot{\hat{\mathbf{q}}}(t)-\hat{\mathbf{f}}(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}) \right)dt - \bm{\lambda}(0)^{\top}(\hat{\mathbf{q}}(0)-\hat{\mathbf{q}}_0),
-        \label{eq:lagrange_cost2}
-\end{equation*}
-have the form
-\vspace{-0.6cm}
+and the \textcolor{codeblue}{gradient} w.r.t. $\hat{\bm{\theta}}$ of the reduced training $\tilde\ell$ has the form
+\vspace{0.1cm}
 \begin{center}
-\begin{tcolorbox}[width=7.7cm, colback=gray!10, colframe=gray!50, boxrule=0.5pt, arc=2pt]
+\begin{tcolorbox}[width=9.7cm, colback=gray!10, colframe=gray!50, boxrule=0.5pt, arc=2pt]
 \begin{equation*}
-        \dfrac{\mathrm{d} \tilde{\ell}}{\mathrm{d} \hat{\bm{\theta}}} = \dfrac{\partial \mathscr{L}}{\partial\hat{\bm{\theta}}} = \int_0^T \bm{\lambda}(t)^{\top} \dfrac{\partial\hat{\textbf{f}}}{\partial\hat{\bm{\theta}}}~dt.
+        \frac{\mathrm{d}\tilde{\ell}(\hat{\bm{\theta}})}{\mathrm{d}\hat{\bm{\theta}}}
+   = \int_0^T \bm{\lambda}(t)^{\top}\dfrac{\partial\hat{\mathbf{f}}(\hat{\mathbf{q}},\hat{\bm{\theta}})}{\partial\hat{\bm{\theta}}}\Bigg\vert_{\hat{\mathbf{q}}(\cdot) = \tilde{\mathbf{q}}(\cdot, \hat{\bm{\theta}} ) }~\dd t
         \label{eq:gradient_lagrange}
-\end{equation*}
+    \end{equation*}
 \end{tcolorbox}\end{center}
     
 \end{frame}
 
 \begin{frame}{Proof Sketch (Lagrangian Formulation)}
-
+\vspace{-0.2cm}
 {\scriptsize
+$$\mathscr{L}(\tilde{\mathbf{q}},\hat{\bm{\theta}},\bm{\lambda}) = \int_0^T \left( g(\tilde{\mathbf{q}}(t,\hat{\bm{\theta}}),t) - \bm{\lambda}(t)^{\top}\left( \dot{\tilde{\mathbf{q}}}(t) - \hat{\mathbf{f}}(\tilde{\mathbf{q}}(t,\hat{\bm{\theta}}),\hat{\bm{\theta}})  \right) \right)\dd t-\bm{\lambda}(0)^{\top}(\tilde{\mathbf{q}}(0,\hat{\bm{\theta}})-\tilde{\mathbf{q}}_0)$$
 Differentiating w.r.t. $\hat{\bm{\theta}}$,
 \begin{align*}
-    \pdv{\mathscr{L}}{\hat{\bm{\theta}}} &= \int_0^T\left[ \pdv{g}{\hat{\bm{\theta}}} + \pdv{g}{\hat{\mathbf{q}}} \dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} - \bm{\lambda}(t)^{\top} \left( \dv{t}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} - \pdv{\hat{\mathbf{f}}}{\hat{\bm{\theta}}} - \pdv{\hat{\mathbf{f}}}{\hat{\mathbf{q}}}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} \right) \right] dt - \bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0)\notag\\
-    &= \int_0^T \left[\pdv{g}{\hat{\bm{\theta}}} + \bm{\lambda}(t)^{\top} \pdv{\hat{\mathbf{f}}}{\hat{\bm{\theta}}}+ \left( \pdv{g}{\hat{\mathbf{q}}} + \bm{\lambda}(t)^{\top}\pdv{\hat{\mathbf{f}}}{\hat{\mathbf{q}}}-\bm{\lambda}(t)^{\top}\dv{t} \right)\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} \right]dt- \bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0). 
+    \dv{\mathscr{L}}{\hat{\bm{\theta}}}~(\tilde{\mathbf{q}},\hat{\bm{\theta}},\bm{\lambda}) &= \int_0^T\left[ \pdv{g}{\hat{\bm{\theta}}} + \pdv{g}{\tilde{\mathbf{q}}} \dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}} - \bm{\lambda}(t)^{\top} \left( \dv{t}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}} - \pdv{\hat{\mathbf{f}}}{\hat{\bm{\theta}}} - \pdv{\hat{\mathbf{f}}}{\tilde{\mathbf{q}}}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}} \right) \right] dt - \bm{\lambda}(0)^{\top}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}}~(0)\notag\\
+    &= \int_0^T \left[\pdv{g}{\hat{\bm{\theta}}} + \bm{\lambda}(t)^{\top} \pdv{\hat{\mathbf{f}}}{\hat{\bm{\theta}}}+ \left( \pdv{g}{\tilde{\mathbf{q}}} + \bm{\lambda}(t)^{\top}\pdv{\hat{\mathbf{f}}}{\tilde{\mathbf{q}}}-\bm{\lambda}(t)^{\top}\dv{t} \right)\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}} \right]dt- \bm{\lambda}(0)^{\top}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}}~(0). 
 \end{align*}
 Integrating by parts,
 \begin{align*}
-    \int_0^T -\bm{\lambda}(t)^{\top}\dv{t}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~dt &= \bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0) - \bm{\lambda}(T)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(T) + \int_0^T \left( \dv{\bm{\lambda}}{t}\right)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~dt.
+    \int_0^T -\bm{\lambda}(t)^{\top}\dv{t}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}}~dt &= \bm{\lambda}(0)^{\top}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}}~(0) - \bm{\lambda}(T)^{\top}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}}~(T) + \int_0^T \left( \dv{\bm{\lambda}}{t}\right)^{\top}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}}~dt.
 \end{align*}
 Plugging into the above expression,
 \begin{align*}
-   \pdv{\mathscr{L}}{\hat{\bm{\theta}}} &= \int_0^T\left[ \pdv{g}{\hat{\bm{\theta}}} + \bm{\lambda}(t)^{\top} \pdv{\hat{\textbf{f}}}{\hat{\bm{\theta}}} + \underbrace{\left( \pdv{g}{\hat{\mathbf{q}}} + \bm{\lambda}(t)^{\top}\pdv{\hat{\mathbf{f}}}{\hat{\mathbf{q}}}+ \dot{\bm{\lambda}}(t)^{\top}\right)}_{\text{make = 0}} \dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}} \right]dt \\
-   & - \bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0)+\bm{\lambda}(0)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(0) - \underbrace{\bm{\lambda}(T)^{\top}\dv{\hat{\mathbf{q}}}{\hat{\bm{\theta}}}~(T)}_{\text{make = 0}}.\quad\qed
+   \dv{\mathscr{L}}{\hat{\bm{\theta}}}~(\tilde{\mathbf{q}},\hat{\bm{\theta}},\bm{\lambda}) &= \int_0^T\left[ \pdv{g}{\hat{\bm{\theta}}} + \bm{\lambda}(t)^{\top} \pdv{\hat{\textbf{f}}}{\hat{\bm{\theta}}} + \underbrace{\left( \pdv{g}{\tilde{\mathbf{q}}} + \bm{\lambda}(t)^{\top}\pdv{\hat{\mathbf{f}}}{\tilde{\mathbf{q}}}+ \dot{\bm{\lambda}}(t)^{\top}\right)}_{\text{make = 0}} \dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}} \right]dt \\
+   & - \bm{\lambda}(0)^{\top}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}}~(0)+\bm{\lambda}(0)^{\top}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}}~(0) - \underbrace{\bm{\lambda}(T)^{\top}\dv{\tilde{\mathbf{q}}}{\hat{\bm{\theta}}}~(T)}_{\text{make = 0}}.\quad\qed
 \end{align*}
 
 }
@@ -176,20 +173,20 @@ For the \textcolor{codeblue}{ROM-OpInf RHS} $\hat{\mathbf{f}}:\mathbb{R}^r \time
 
 
 \begin{frame}{Primal Problem}
-  The \textcolor{codeblue}{primal} sensitivity equations for the state $\hat{\mathbf{q}}(t)$ and parameters $\hat{\theta}_i$ for $i=1,\dots,d$ are given by:
-    $$\dot{\hat{\mathbf{q}}}(t)
-      = \hat{\mathbf{f}}\bigl(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}\bigr),
+  The \textcolor{codeblue}{primal} sensitivity equations for the state $\tilde{\mathbf{q}}(t)$ and parameters $\hat{\theta}_i$ for $i=1,\dots,d$ are given by:
+    $$\dot{\tilde{\mathbf{q}}}(t)
+      = \hat{\mathbf{f}}\bigl(\tilde{\mathbf{q}}(t),\hat{\bm{\theta}}\bigr),
       \qquad
-      \partial_{\hat{\theta}_i}\dot{\hat{\mathbf{q}}}(t)
-      = \frac{\partial \hat{\mathbf{f}}}{\partial \hat{\mathbf{q}}}
-        \bigl(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}\bigr)^{\!\top}
-        \,\partial_{\hat{\theta}_i}\hat{\mathbf{q}}(t)
+      \partial_{\hat{\theta}_i}\dot{\tilde{\mathbf{q}}}(t)
+      = \frac{\partial \hat{\mathbf{f}}}{\partial \tilde{\mathbf{q}}}
+        \bigl(\tilde{\mathbf{q}}(t),\hat{\bm{\theta}}\bigr)^{\!\top}
+        \,\partial_{\hat{\theta}_i}\tilde{\mathbf{q}}(t)
       + \partial_{\hat{\theta}_i}\hat{\mathbf{f}}
-        \bigl(\hat{\mathbf{q}}(t),\hat{\bm{\theta}}\bigr).$$
+        \bigl(\tilde{\mathbf{q}}(t),\hat{\bm{\theta}}\bigr).$$
 
   \begin{block}{Remark}
     While the adjoint equations are independent of $i=1,\dots, d$, i.e., the size of the $\hat{\bm{\theta}}$ parameters, the primal sensitivity equations require solving $d$ systems for 
-    $\{\partial_{\hat{\theta}_i} \dot{\hat{\mathbf{q}}}(t)\}_{i=1}^d$, making the adjoint method particularly advantageous to the primal when $d \gg 1$.
+    $\{\partial_{\hat{\theta}_i} \dot{\tilde{\mathbf{q}}}(t)\}_{i=1}^d$, making the adjoint method particularly advantageous to the primal when $d \gg 1$.
   \end{block}
 \end{frame}
 
@@ -244,9 +241,9 @@ $$\hat{\bm\theta}^{j+1} = \hat{\bm\theta}^j - \eta_j\,\mathscr{G}^j\,.$$
 Initialize $j=0$, $\hat{\bm\theta}^0=\hat{\bm\theta}^{*}_{\text{OpInf}}$, and step-size bounds.
 \begin{enumerate}
   \item \textbf{Forward solve:}
-    compute ROM solution $\tilde{\mathbf{q}}(t,\hat{\bm\theta}^j) = \hat{\mathbf{q}}(t)$ via reduced ODE.
+    compute ROM solution $\tilde{\mathbf{q}}(t,\hat{\bm\theta}^j)$ via reduced ODE.
   \item \textbf{Gradients:}
-    compute $\nabla_{\hat{\mathbf{q}}}~\hat{\mathbf{f}}(\hat{\mathbf{q}}, \hat{\bm{\theta}}^j),~\nabla_{\hat{\mathbf{q}}}\,g\bigl(\hat{\mathbf{q}},t\bigr)$ and $\nabla_{\hat{\bm{\theta}}}\,\hat{\mathbf{f}}(\hat{\mathbf{q}}, \hat{\bm{\theta}}^j)$.
+    compute $\nabla_{\hat{\mathbf{q}}}~\hat{\mathbf{f}}(\tilde{\mathbf{q}}, \hat{\bm{\theta}}^j),~\nabla_{\tilde{\mathbf{q}}}\,g\bigl(\hat{\mathbf{q}},t\bigr)$ and $\nabla_{\hat{\bm{\theta}}}\,\hat{\mathbf{f}}(\tilde{\mathbf{q}}, \hat{\bm{\theta}}^j)$.
   \item \textbf{Adjoint solve:}
     integrate adjoint ODE backward for $\bm\lambda(t)$.
   \item \textbf{Loss-Gradient assembly:}
