@@ -30,9 +30,9 @@ MasterThesisPresentation/
 
 ## Customization
 
-- **Fonts**: The template uses custom fonts. To use other fonts, modify the UU_beamer.sty file.
-- **Content**: Edit Edit the chapters/ directory files to add or modify your presentation content.
-- **Images**: Add or replace images in the images/ directory as needed..
+- **Fonts**: The template uses custom fonts. To use other fonts, modify the `UU_beamer.sty` file.
+- **Content**: Edit Edit the `chapters/` directory files to add or modify your presentation content.
+- **Images**: Add or replace images in the `images/` directory as needed..
 
 ## License
 
